@@ -37,7 +37,7 @@ try:
 except:
     raise Exception("Date param must be YYYYMMDD")
 
-if not args.prefix in ["AN", "DC", "SC"]:
+if not args.prefix in ["AN", "DC", "SC", "JSC", "HSC"]:
     raise Exception("Prefix must be one of AN, DC, SC")
 
 # get logger to debug actions
@@ -71,7 +71,8 @@ logging.info("PRESSLAB: organizing files")
 dic_files = {}
 for item in response.get('Contents', []):
     key = item["Key"]
-    page_number = key[27:30]
+    page_number =  key.split("_")[1].split(".")[0]  #key[27:30]
+    page_number = page_number[page_number.find('0'):][:-1]
     if not dic_files.get(page_number):
         dic_files[page_number] = []
     dic_files[page_number].append(key)
