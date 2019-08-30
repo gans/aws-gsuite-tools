@@ -15,6 +15,7 @@
 """Command line tool to help verify bucket objects and organize then"""
 import os
 import sys
+import re
 import logging
 import argparse
 import boto3
@@ -65,12 +66,17 @@ dir_name = date.strftime("%Y%m%d")
 if not os.path.exists(dir_name):
     os.mkdir(dir_name)
 
-
 # organize file names
 logging.info("PRESSLAB: organizing files")
 dic_files = {}
+pattern = re.compile("[A-Za-z0-9\/]+_[A-Za-z0-9]+\.[A-Za-z]")
 for item in response.get('Contents', []):
     key = item["Key"]
+
+    print(key, pattern.match(key))
+    if not pattern.match(key):
+        continue
+
     page_number =  key.split("_")[1].split(".")[0]  #key[27:30]
     page_number = page_number[page_number.find('0'):][:-1]
     if not dic_files.get(page_number):
