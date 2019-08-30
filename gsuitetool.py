@@ -75,7 +75,7 @@ def create_message_with_attachment(sender, to, subject, message_text, file):
             message.as_string().encode("utf-8")).decode("utf-8")}
 
 
-def get_service():
+def get_service(token_file=None):
     """Shows basic usage of the Gmail API.
     Lists the user's Gmail labels.
     """
@@ -83,7 +83,10 @@ def get_service():
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.pickle'):
+    if token_file:
+        with open(token_file, 'rb') as token:
+            creds = pickle.load(token)
+    elif os.path.exists('token.pickle'):
         with open('token.pickle', 'rb') as token:
             creds = pickle.load(token)
     # If there are no (valid) credentials available, let the user log in.
@@ -102,8 +105,8 @@ def get_service():
     return service
 
 
-def send_mail(sender, to, subject, message_text, file=None):
-    service = get_service()
+def send_mail(sender, to, subject, message_text, file=None, token_file=None):
+    service = get_service(token_file)
     if file:
         message = create_message_with_attachment(sender, to, subject, message_text, file)
     else:
