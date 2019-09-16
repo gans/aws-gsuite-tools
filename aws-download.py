@@ -69,39 +69,68 @@ if not os.path.exists(dir_name):
 # organize file names
 logging.info("PRESSLAB: organizing files")
 dic_files = {}
+dic_files_ex = {}
 pattern = re.compile("[A-Za-z0-9\/]+_[A-Za-z0-9]+\.[A-Za-z]")
 for item in response.get('Contents', []):
     key = item["Key"]
 
-    print(key, pattern.match(key))
+    #print(key, pattern.match(key))
     if not pattern.match(key):
         continue
 
-    page_number =  key.split("_")[1].split(".")[0]  #key[27:30]
-    page_number = page_number[page_number.find('0'):][:-1]
-    if not dic_files.get(page_number):
-        dic_files[page_number] = []
-    dic_files[page_number].append(key)
+    key_number =  key.split("_")[1].split(".")[0]  #key[27:30]
+    page_number = key_number[key_number.find('0'):][:-1]
+    caderno = key_number[:key_number.find('0')]
+    if caderno.lower() in ["an", "dc", 'st']: # main
+        if not dic_files.get(page_number):
+            dic_files[page_number] = []
+        dic_files[page_number].append(key)
+    else:
+        if not dic_files_ex.get(caderno):
+            dic_files_ex[caderno] = []
+        dic_files_ex[caderno].append(key)
 
 # title eds
 titles = open("{}/cadernos.txt".format(dir_name), "w")
 index = 0
+list_download = []
+#
+files = [i for i in dic_files.keys()]
+files.sort()
+for key in files:
+    list_download.append(dic_files[key])
 
-for key, values in dic_files.items():
+    found = {}
+    for keyy in dic_files_ex.keys():
+        vals = dic_files_ex[keyy]
+        vals.sort()
+        first_item = vals[0]
+        key_number =  first_item.split("_")[1].split(".")[0]  #key[27:30]
+        page_number = key_number[key_number.find('0'):][:-1]  
+        if page_number == key:
+            for i in vals:
+                key_number =  i.split("_")[1].split(".")[0]  #key[27:30]
+                page_number = key_number[key_number.find('0'):][:-1]
+                if not found.get(page_number):
+                    found[page_number] = []
+                found[page_number].append(i)
+        if found:
+            keys = [i for i in found.keys()]
+            keys.sort()
+            for i in keys:
+                list_download.append(found[i])
+
+for key in list_download:
     index += 1
-    dir_file = "{}/{}".format(dir_name, int(key))
+    dir_file = "{}/{}".format(dir_name, index)
     if not os.path.exists(dir_file):
         os.mkdir(dir_file)
 
     file_name = "{}/2render.pdf".format(dir_file)
 
     # here starts the human-error variable    
-    preferable_file = {}
-    for i in values:
-        preferable_file[i.lower()] = i
-    temp = [i for i in preferable_file.keys()]
-    temp.sort()
-    preferable_file = preferable_file[temp[-1]]
+    key.sort()
+    preferable_file = key[-1]
     # ends here
 
     # download file
